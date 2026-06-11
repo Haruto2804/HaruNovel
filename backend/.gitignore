@@ -1,0 +1,53 @@
+# =========================================================================
+# 1. THƯ VIỆN VÀ CODE RÁC (Dependencies & Cache)
+# =========================================================================
+# Tuyệt đối không đẩy thư mục này lên vì nó cực kỳ nặng và có thể tự cài lại bằng 'npm install'
+node_modules/
+/dist
+/build
+
+# Các file nhật ký lỗi khi chạy npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================================================================
+# 2. BẢO MẬT (Security & Environment Variables)
+# =========================================================================
+# Chặn các file chứa mật khẩu SQL Server, chuỗi kết nối DB, bí mật JWT (Secret Key)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Chặn các file chứng chỉ, khóa bảo mật
+*.pem
+*.key
+*.cert
+
+# =========================================================================
+# 3. HỆ ĐIỀU HÀNH (OS Files)
+# =========================================================================
+# Các file tự sinh của hệ điều hành Windows và macOS làm bẩn thư mục
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =========================================================================
+# 4. TRÌNH SOẠN THẢO CODE (IDE & Editors)
+# =========================================================================
+# Cấu hình riêng của VS Code hoặc WebStorm, không nên đưa lên làm ảnh hưởng người khác
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
