@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-haru-bg: #0b0f19;
+  --color-haru-surface: #111827;
+  --color-haru-card: #151b2e;
+  --color-haru-gold: #f5c46b;
+  --color-haru-purple: #8b5cf6;
+  --color-haru-muted: #94a3b8;
+  --color-haru-paper: #f4ead8;
+
+  --shadow-glow: 0 0 40px rgba(245, 196, 107, 0.14);
+}
