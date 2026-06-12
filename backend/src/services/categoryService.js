@@ -1,4 +1,4 @@
-import sql from "mssql";
+import { sql } from "../config/db.js";
 
 class CategoryService {
   constructor(dbPool) {

@@ -6,7 +6,7 @@ class NovelController {
       return res.status(200).json(result);
     } catch (err) {
       return res.status(500).json({
-        message: "Lỗi lấy danh sách truyện rồi anh Bảo ơi!",
+        message: "Lỗi lấy danh sách truyện!",
         error: err.message,
       });
     }
@@ -113,7 +113,7 @@ class NovelController {
       return res.status(500).json({
         success: false,
         message: "Đã xảy ra lỗi hệ thống trong quá trình cập nhật danh mục!",
-        error: err.message, // Trả về tin nhắn lỗi cụ thể để dev dễ sửa (ví dụ: 'Lỗi gán danh mục: ...')
+        error: err.message,
       });
     }
   }
