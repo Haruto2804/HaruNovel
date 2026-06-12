@@ -172,7 +172,7 @@ function Library() {
 
           {/* Ô Thêm truyện dạng Grid Card đẩy về cuối danh sách nếu có truyện */}
           <Link
-            to="/browse"
+            to="/explore"
             className="flex flex-col items-center justify-center aspect-[2/3] bg-surface-container-low/40 border-2 border-dashed border-outline-variant/60 rounded-2xl hover:border-primary/50 hover:bg-surface-container-low transition-all group active:scale-[0.98] p-6 text-center"
           >
             <span className="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary group-hover:scale-110 transition-all mb-3">

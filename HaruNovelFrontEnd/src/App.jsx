@@ -6,6 +6,9 @@ import SettingsPanel from "./components/ui/SettingsPanel";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Library from "./pages/Library";
+import Explore from "./pages/Explore";
+import NewReleases from "./pages/NewReleases";
+import UserProfile from "./pages/UserProfile";
 // Mảng cấu hình đầy đủ các màu sắc hệ thống cho từng giao diện (Theme)
 const themes = [
   {
@@ -147,6 +150,9 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/novel/:novelId" element={<NovelDetail />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/new-releases" element={<NewReleases />} />
+          <Route path="/profile" element={<UserProfile />} />
         </Routes>
       </main>
     </div>
