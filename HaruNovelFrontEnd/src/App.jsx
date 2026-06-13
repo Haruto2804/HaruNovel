@@ -1,15 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Routes, Route, Outlet } from "react-router-dom";
+
 import Header from "./components/layout/Header";
+import SettingsPanel from "./components/ui/SettingsPanel";
 import ChapterDetails from "./pages/ChapterDetails";
 import NovelDetail from "./pages/NovelDetail";
-import SettingsPanel from "./components/ui/SettingsPanel";
-import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Library from "./pages/Library";
 import Explore from "./pages/Explore";
 import NewReleases from "./pages/NewReleases";
 import UserProfile from "./pages/UserProfile";
-// Mảng cấu hình đầy đủ các màu sắc hệ thống cho từng giao diện (Theme)
+import AdminLayout from "./components/layout/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import NovelManage from "./pages/admin/NovelManage";
+import ChapterManage from "./pages/admin/ChapterManage";
+import CategoryManage from "./pages/admin/CategoryManage";
+import UserManage from "./pages/admin/UserManage";
+import AdminSettings from "./pages/admin/AdminSettings";
+import CreateNovel from "./pages/admin/CreateNovel";
+import EditChapter from "./pages/admin/EditChapter";
+import EditCategory from "./pages/admin/EditCategory";
+import EditUser from "./pages/admin/EditUser";
+// Mảng cấu hình đầy đủ các màu sắc hệ thống
 const themes = [
   {
     id: "cream",
@@ -55,7 +67,7 @@ const themes = [
 
 const App = () => {
   // --- 1. CÁC STATE QUẢN LÝ CẤU HÌNH GIAO DIỆN ĐỌC ---
-  const [theme, setTheme] = useState(themes[0]); // Mặc định dùng theme cream
+  const [theme, setTheme] = useState(themes[0]);
   const [fontFamily, setFontFamily] = useState("font-serif");
   const [textSize, setTextSize] = useState("text-base");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -65,97 +77,110 @@ const App = () => {
   const [showHeader, setShowHeader] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sử dụng useRef để lưu vị trí cuộn trước đó mà không gây render lại giao diện vô ích
   const lastScrollY = useRef(0);
 
   // --- 3. LOGIC THEO DÕI SỰ KIỆN CUỘN CHUỘT (SCROLL) ---
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // Tính toán phần trăm thanh tiến độ đọc (Progress Bar)
       const totalHeight =
         document.documentElement.scrollHeight - window.innerHeight;
+
       if (totalHeight > 0) {
         setReadingProgress((currentScrollY / totalHeight) * 100);
       }
 
-      // Logic ẩn Header khi cuộn xuống, hiện lại khi cuộn lên
       if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
-        // Cuộn xuống + đã cuộn qua chiều cao của Header -> Ẩn nó đi
         setShowHeader(false);
-        // Đóng luôn menu mobile nếu người dùng đang mở mà cố tình cuộn xuống
         setIsMobileMenuOpen(false);
       } else {
-        // Cuộn ngược lên -> Hiện lại Header
         setShowHeader(true);
       }
 
-      // Cập nhật lại vị trí cuộn cũ
       lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener("scroll", handleScroll);
-
-    // Cleanup event để tránh rò rỉ bộ nhớ (Memory Leak)
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div
-      className="min-h-screen font-body-md transition-colors duration-500 selection:bg-teal-200 selection:text-teal-900"
-      style={{
-        // Đồng bộ hóa toàn bộ biến CSS Variables cho các Component con sử dụng
-        "--theme-bg": theme.bg,
-        "--theme-text": theme.text,
-        "--theme-primary": theme.primary,
-        "--theme-header-bg": theme.headerBg,
-        "--theme-ui-bg": theme.uiBg,
-        "--theme-border": theme.border,
-        backgroundColor: "var(--theme-bg)",
-        color: "var(--theme-text)",
-      }}
-    >
-      {/* COMPONENT BANNER ĐẦU TRANG & TIẾN ĐỘ ĐỌC */}
-      <Header
-        readingProgress={readingProgress}
-        showHeader={showHeader}
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-        setIsSettingsOpen={setIsSettingsOpen}
-      />
+    <Routes>
+      {/* =========================================
+          CỤM 1: CLIENT LAYOUT (CÓ HEADER VÀ THEME ĐỘNG)
+          ========================================= */}
+      <Route
+        element={
+          <div
+            className="min-h-screen font-body-md transition-colors duration-500 selection:bg-teal-200 selection:text-teal-900"
+            style={{
+              "--theme-bg": theme.bg,
+              "--theme-text": theme.text,
+              "--theme-primary": theme.primary,
+              "--theme-header-bg": theme.headerBg,
+              "--theme-ui-bg": theme.uiBg,
+              "--theme-border": theme.border,
+              backgroundColor: "var(--theme-bg)",
+              color: "var(--theme-text)",
+            }}
+          >
+            <Header
+              readingProgress={readingProgress}
+              showHeader={showHeader}
+              isMobileMenuOpen={isMobileMenuOpen}
+              setIsMobileMenuOpen={setIsMobileMenuOpen}
+              setIsSettingsOpen={setIsSettingsOpen}
+            />
+            <SettingsPanel
+              isSettingsOpen={isSettingsOpen}
+              setIsSettingsOpen={setIsSettingsOpen}
+              fontFamily={fontFamily}
+              setFontFamily={setFontFamily}
+              textSize={textSize}
+              setTextSize={setTextSize}
+              theme={theme}
+              setTheme={setTheme}
+              themes={themes}
+            />
 
-      {/* COMPONENT BẢNG CÀI ĐẶT CHỮ / THEME (POPUP) */}
-      <SettingsPanel
-        isSettingsOpen={isSettingsOpen}
-        setIsSettingsOpen={setIsSettingsOpen}
-        fontFamily={fontFamily}
-        setFontFamily={setFontFamily}
-        textSize={textSize}
-        setTextSize={setTextSize}
-        theme={theme}
-        setTheme={setTheme}
-        themes={themes}
-      />
+            {/* Mọi nội dung của trang Client sẽ được chui vào đây */}
+            <main className="pt-24 pb-12">
+              <Outlet />
+            </main>
+          </div>
+        }
+      >
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/chapter/:chapterId"
+          element={
+            <ChapterDetails textSize={textSize} fontFamily={fontFamily} />
+          }
+        />
+        <Route path="/novel/:novelId" element={<NovelDetail />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/new-releases" element={<NewReleases />} />
+        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/profile/:id" element={<UserProfile />} />
+      </Route>
 
-      {/* COMPONENT NỘI DUNG CHƯƠNG TRUYỆN CHÍNH */}
-      <main className="pt-24 pb-12">
-        <Routes>
-          <Route
-            path="/chapter/:chapterId"
-            element={
-              <ChapterDetails textSize={textSize} fontFamily={fontFamily} />
-            }
-          />
-          <Route path="/" element={<Home />} />
-          <Route path="/novel/:novelId" element={<NovelDetail />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/new-releases" element={<NewReleases />} />
-          <Route path="/profile" element={<UserProfile />} />
-        </Routes>
-      </main>
-    </div>
+      {/* =========================================
+          CỤM 2: ADMIN LAYOUT (ĐỘC LẬP - KHÔNG HEADER)
+          ========================================= */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="novels" element={<NovelManage />} />
+        <Route path="novels/create" element={<CreateNovel />} />{" "}
+        <Route path="chapters" element={<ChapterManage />} />
+        <Route path="chapters/edit" element={<EditChapter />} />
+        <Route path="categories" element={<CategoryManage />} />
+        <Route path="categories/edit" element={<EditCategory />} />
+        <Route path="users" element={<UserManage />} />
+        <Route path="users/edit" element={<EditUser />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
+    </Routes>
   );
 };
 
