@@ -21,6 +21,9 @@ import CreateNovel from "./pages/admin/CreateNovel";
 import EditChapter from "./pages/admin/EditChapter";
 import EditCategory from "./pages/admin/EditCategory";
 import EditUser from "./pages/admin/EditUser";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
 // Mảng cấu hình đầy đủ các màu sắc hệ thống
 const themes = [
   {
@@ -106,6 +109,8 @@ const App = () => {
 
   return (
     <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       {/* =========================================
           CỤM 1: CLIENT LAYOUT (CÓ HEADER VÀ THEME ĐỘNG)
           ========================================= */}
