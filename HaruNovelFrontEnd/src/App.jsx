@@ -25,7 +25,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { NovelProvider } from "./contexts/NovelContext";
 
-// Mảng cấu hình đầy đủ các màu sắc hệ thống
 const themes = [
   {
     id: "cream",
@@ -69,21 +68,22 @@ const themes = [
   },
 ];
 
-const App = () => {
-  // --- 1. CÁC STATE QUẢN LÝ CẤU HÌNH GIAO DIỆN ĐỌC ---
+// =========================================
+// COMPONENT MỚI: CLIENT LAYOUT
+// Cách ly toàn bộ State cuộn chuột và Theme vào đây
+// =========================================
+const ClientLayout = () => {
   const [theme, setTheme] = useState(themes[0]);
   const [fontFamily, setFontFamily] = useState("font-serif");
   const [textSize, setTextSize] = useState("text-base");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // --- 2. CÁC STATE QUẢN LÝ TIẾN ĐỘ VÀ TRẠNG THÁI HEADER ---
   const [readingProgress, setReadingProgress] = useState(0);
   const [showHeader, setShowHeader] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const lastScrollY = useRef(0);
 
-  // --- 3. LOGIC THEO DÕI SỰ KIỆN CUỘN CHUỘT (SCROLL) ---
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -109,60 +109,61 @@ const App = () => {
   }, []);
 
   return (
+    <div
+      className="min-h-screen font-body-md transition-colors duration-500 selection:bg-teal-200 selection:text-teal-900"
+      style={{
+        "--theme-bg": theme.bg,
+        "--theme-text": theme.text,
+        "--theme-primary": theme.primary,
+        "--theme-header-bg": theme.headerBg,
+        "--theme-ui-bg": theme.uiBg,
+        "--theme-border": theme.border,
+        backgroundColor: "var(--theme-bg)",
+        color: "var(--theme-text)",
+      }}
+    >
+      <Header
+        readingProgress={readingProgress}
+        showHeader={showHeader}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        setIsSettingsOpen={setIsSettingsOpen}
+      />
+      <SettingsPanel
+        isSettingsOpen={isSettingsOpen}
+        setIsSettingsOpen={setIsSettingsOpen}
+        fontFamily={fontFamily}
+        setFontFamily={setFontFamily}
+        textSize={textSize}
+        setTextSize={setTextSize}
+        theme={theme}
+        setTheme={setTheme}
+        themes={themes}
+      />
+      <main className="pt-24 pb-12">
+        {/* Render các trang Client (Home, Novel, Chapter...) tại đây */}
+        <Outlet context={{ textSize, fontFamily }} />
+      </main>
+    </div>
+  );
+};
+
+// =========================================
+// APP CHÍNH (Rất gọn nhẹ, không còn State gây giật)
+// =========================================
+const App = () => {
+  return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      {/* =========================================
-          CỤM 1: CLIENT LAYOUT (CÓ HEADER VÀ THEME ĐỘNG)
-          ========================================= */}
-      <Route
-        element={
-          <div
-            className="min-h-screen font-body-md transition-colors duration-500 selection:bg-teal-200 selection:text-teal-900"
-            style={{
-              "--theme-bg": theme.bg,
-              "--theme-text": theme.text,
-              "--theme-primary": theme.primary,
-              "--theme-header-bg": theme.headerBg,
-              "--theme-ui-bg": theme.uiBg,
-              "--theme-border": theme.border,
-              backgroundColor: "var(--theme-bg)",
-              color: "var(--theme-text)",
-            }}
-          >
-            <Header
-              readingProgress={readingProgress}
-              showHeader={showHeader}
-              isMobileMenuOpen={isMobileMenuOpen}
-              setIsMobileMenuOpen={setIsMobileMenuOpen}
-              setIsSettingsOpen={setIsSettingsOpen}
-            />
-            <SettingsPanel
-              isSettingsOpen={isSettingsOpen}
-              setIsSettingsOpen={setIsSettingsOpen}
-              fontFamily={fontFamily}
-              setFontFamily={setFontFamily}
-              textSize={textSize}
-              setTextSize={setTextSize}
-              theme={theme}
-              setTheme={setTheme}
-              themes={themes}
-            />
 
-            {/* Mọi nội dung của trang Client sẽ được chui vào đây */}
-            <main className="pt-24 pb-12">
-              <Outlet />
-            </main>
-          </div>
-        }
-      >
+      {/* CỤM 1: CLIENT SẼ DÙNG CLIENT LAYOUT */}
+      <Route element={<ClientLayout />}>
         <Route path="/" element={<Home />} />
-        <Route
-          path="/chapter/:chapterId"
-          element={
-            <ChapterDetails textSize={textSize} fontFamily={fontFamily} />
-          }
-        />
+        {/* Lưu ý: Để truyền textSize và fontFamily xuống trang Chapter, 
+            bạn có thể dùng thẻ tự đóng kèm theo hook useOutletContext() ở trang con, 
+            hoặc giữ cấu trúc gốc nếu nó không phụ thuộc props quá nhiều */}
+        <Route path="/chapter/:chapterId" element={<ChapterDetails />} />
         <Route path="/novel/:novelId" element={<NovelDetail />} />
         <Route path="/library" element={<Library />} />
         <Route path="/explore" element={<Explore />} />
@@ -171,9 +172,7 @@ const App = () => {
         <Route path="/profile/:id" element={<UserProfile />} />
       </Route>
 
-      {/* =========================================
-          CỤM 2: ADMIN LAYOUT (ĐỘC LẬP - KHÔNG HEADER)
-          ========================================= */}
+      {/* CỤM 2: ADMIN LAYOUT BÌNH YÊN, KHÔNG BỊ RERENDER NỮA */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
         <Route

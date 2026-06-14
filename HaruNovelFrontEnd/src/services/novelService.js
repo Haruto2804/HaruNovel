@@ -4,8 +4,9 @@ class NovelService {
     const response = await api.get("/novels");
     return response.data;
   }
-  async addNovel() {
-    const response = await api.post("/novels/create");
+  async addNovel(formData) {
+    console.log("truoc khi gui", formData);
+    const response = await api.post("/novels", formData);
   }
 
   async getNovelDashboardStats() {

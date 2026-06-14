@@ -2,22 +2,28 @@ import React, { useEffect, useState } from "react";
 import StoryEditor from "../../components/ui/StoryEditor";
 import AuthorSelect from "../../components/ui/AuthorSelect";
 import authorService from "../../services/authorService.js";
+import CategorySelect from "../../components/ui/CategorySelect.jsx";
+import StatusSelect from "../../components/ui/StatusSelect.jsx";
+import novelService from "../../services/novelService.js";
 const CreateNovel = () => {
   // --- STATES CHO FORM DỮ LIỆU ---
   const [title, setTitle] = useState("");
+
   const [authors, setAuthors] = useState(null);
   const [description, setDescription] = useState("");
-  const [genre, setGenre] = useState("Fantasy");
-  const [status, setStatus] = useState("Draft");
+  // Đã sửa: Để mặc định genre là null (chưa chọn)
+  const [genre, setGenre] = useState(null);
+  // Đã sửa: Status mặc định là 1 (Đang tiến hành) khớp với StatusSelect
+  const [status, setStatus] = useState(1);
   //CREATE NOVEL DATA SENDER
   const [storyContent, setStoryContent] = useState(null);
   // --- STATES CHO TAGS ---
   const [tags, setTags] = useState(["High Fantasy", "Magic System"]);
   const [tagInput, setTagInput] = useState("");
-  console.log(storyContent);
   // --- STATE CHO TOAST THÔNG BÁO ---
   const [showToast, setShowToast] = useState(false);
-
+  const [loading, setIsLoading] = useState(false);
+  const [options, setOptions] = useState([]);
   // --- LOGIC XỬ LÝ TAGS ---
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -34,26 +40,61 @@ const CreateNovel = () => {
   };
 
   // --- LOGIC SUBMIT FORM ---
-  const handleSubmit = (e) => {
+  // Nhớ thêm từ khóa async vào đây
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Ở đây anh sẽ gọi API để gửi dữ liệu lên Backend
-    console.log({
-      title,
-      author,
-      description,
-      genre,
-      status,
-      tags,
-      allowComments,
-      ageRestricted,
-      premiumAccess,
-    });
 
-    // Hiển thị Toast thông báo thành công
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 3000);
+    // 1. Validate cơ bản: Đảm bảo không bị bỏ trống các trường bắt buộc
+    if (!title || !authors) {
+      alert("Vui lòng nhập tên truyện và chọn tác giả!");
+      return;
+    }
+
+    // 2. Chuyển đổi dữ liệu cho khớp với những gì Backend đang chờ (addNovel)
+    const formData = {
+      title: title,
+      author_id: typeof authors === "object" ? authors.value : authors,
+      description: description || "Chưa có mô tả",
+      novel_status: status, // Đổi tên 'status' thành 'novel_status'
+      // Tạm thời fix cứng link ảnh (vì giao diện Upload ảnh của bạn chưa gắn logic)
+      cover_image:
+        "https://res.cloudinary.com/ddvotq2cg/image/upload/v1781411115/1_lqnwkt.jpg",
+    };
+    console.log(formData);
+    try {
+      await novelService.addNovel(formData);
+      // In ra để kiểm tra cục dữ liệu cuối cùng chuẩn bị bay lên Server
+      console.log("Dữ liệu búng lên API:", formData);
+      // 4. Hiển thị Toast thông báo thành công
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+    } catch (error) {
+      console.error(
+        "Chi tiết lỗi 400 từ Backend:",
+        error.response?.data || error.message,
+      );
+      alert("Có lỗi xảy ra, vui lòng mở F12 tab Console để xem chi tiết!");
+    }
+  };
+  // ✅ ĐÃ SỬA TẠM: Xử lý giá trị value khi tạo mới thành SỐ
+  const handleCreate = async (inputValue) => {
+    setIsLoading(true);
+    try {
+      const newAuthor = await authorService.addAuthor(inputValue);
+
+      const formattedAuthor = {
+        value: newAuthor.id,
+        label: newAuthor.name || inputValue,
+      };
+      setOptions((prev) => [...prev, formattedAuthor]);
+      setAuthors(formattedAuthor);
+      setIsLoading(false);
+    } catch (error) {
+      console.error(error.message);
+      setIsLoading(false);
+    }
   };
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto font-['Inter'] relative min-h-full">
@@ -72,8 +113,8 @@ const CreateNovel = () => {
           Create New Novel
         </h2>
         <p className="text-[14px] font-medium text-slate-500">
-          Begin a new journey in the HaruNovel Library. Fill in the details
-          below to initialize your manuscript.
+          Begin a new journey in the Library. Fill in the details below to
+          initialize your manuscript.
         </p>
       </header>
 
@@ -112,10 +153,23 @@ const CreateNovel = () => {
                   <label className="block text-[13px] font-bold text-slate-500 mb-2 group-focus-within:text-teal-700 transition-colors uppercase tracking-wide">
                     Author Identity
                   </label>
-                  <AuthorSelect onChange={authors} />
+                  {/* Đã sửa: Truyền value và onChange vào AuthorSelect */}
+                  <AuthorSelect
+                    value={authors}
+                    onChange={(selected) => setAuthors(selected)}
+                    handleCreate={handleCreate}
+                    options={options}
+                    setOptions={setOptions}
+                  />
                 </div>
 
-                <StoryEditor setStoryContent={setStoryContent} />
+                <textarea
+                  required
+                  rows="10"
+                  placeholder="Nhập mô tả truyện tại đây..."
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-[15px] font-medium text-slate-800 focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none resize-none custom-scrollbar"
+                />
               </div>
             </section>
 
@@ -135,73 +189,22 @@ const CreateNovel = () => {
                   <label className="block text-[13px] font-bold text-slate-500 mb-2 group-focus-within:text-teal-700 transition-colors uppercase tracking-wide">
                     Primary Genre
                   </label>
-                  <div className="relative">
-                    <select
-                      value={genre}
-                      onChange={(e) => setGenre(e.target.value)}
-                      className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[14px] font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
-                    >
-                      <option>Fantasy</option>
-                      <option>Romance</option>
-                      <option>Mystery</option>
-                      <option>Sci-Fi</option>
-                      <option>Historical Fiction</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-4 top-3.5 pointer-events-none text-slate-400">
-                      expand_more
-                    </span>
-                  </div>
+                  {/* Đã sửa: Truyền value và onChange vào CategorySelect */}
+                  <CategorySelect
+                    value={genre}
+                    onChange={(selected) => setGenre(selected)}
+                  />
                 </div>
 
                 <div className="group">
                   <label className="block text-[13px] font-bold text-slate-500 mb-2 group-focus-within:text-teal-700 transition-colors uppercase tracking-wide">
                     Publication Status
                   </label>
-                  <div className="relative">
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[14px] font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
-                    >
-                      <option>Draft</option>
-                      <option>Published</option>
-                      <option>Scheduled</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-4 top-3.5 pointer-events-none text-slate-400">
-                      expand_more
-                    </span>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 group">
-                  <label className="block text-[13px] font-bold text-slate-500 mb-2 group-focus-within:text-teal-700 transition-colors uppercase tracking-wide">
-                    Taxonomy Tags
-                  </label>
-                  <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex flex-wrap gap-2 items-center focus-within:bg-white focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
-                    {tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 border border-teal-200 font-bold text-[12px] px-2.5 py-1 rounded-md"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="material-symbols-outlined text-[14px] hover:text-red-500 transition-colors"
-                        >
-                          close
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={handleAddTag}
-                      className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-[13px] font-semibold outline-none min-w-[120px] placeholder:text-slate-400 placeholder:font-normal"
-                      placeholder="Type and press Enter..."
-                    />
-                  </div>
+                  {/* Đã sửa: Truyền value và onChange vào StatusSelect */}
+                  <StatusSelect
+                    value={status}
+                    onChange={(selected) => setStatus(selected)}
+                  />
                 </div>
               </div>
             </section>
@@ -237,14 +240,6 @@ const CreateNovel = () => {
 
         {/* FOOTER ACTIONS */}
         <div className="flex flex-col-reverse sm:flex-row items-center justify-between pt-8 mt-4 border-t border-slate-200 gap-4">
-          <button
-            type="button"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-teal-700 border border-teal-200 bg-teal-50 rounded-xl font-bold text-[14px] hover:bg-teal-100 transition-colors active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[20px]">save</span>
-            Save Draft
-          </button>
-
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <button
               type="button"

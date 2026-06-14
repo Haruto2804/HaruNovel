@@ -2,32 +2,61 @@ import { sql } from "../config/db.js";
 class NovelService {
   async fetchAllNovels() {
     const query = `
-    SELECT *
-    FROM novels n JOIN novel_categories nc ON n.novel_id = nc.novel_id
-    JOIN categories c ON c.category_id = nc.category_id
+    SELECT 
+        n.novel_id,
+        n.title,
+        n.cover_image,
+        n.description,
+        n.view_count,
+        n.novel_status,
+        n.created_at,
+        a.name AS author_name,
+        STRING_AGG(c.category_name, ', ') AS categories
+        FROM novels n
+        LEFT JOIN authors a ON n.author_id = a.id
+        LEFT JOIN novel_categories nc ON n.novel_id = nc.novel_id
+        LEFT JOIN categories c ON nc.category_id = c.category_id
+        GROUP BY 
+        n.novel_id, 
+        n.title, 
+        n.cover_image, 
+        n.description, 
+        n.view_count, 
+        n.novel_status, 
+        n.created_at,
+        a.name
 `;
     const result = await sql.query(query);
     return result.recordset;
   }
   async addNovel(novelData) {
-    console.log(novelData);
-    const { title, author, description, cover_image } = novelData;
+    console.log("Dữ liệu nhận được:", novelData);
+    const { title, author_id, description, cover_image, novel_status } =
+      novelData;
     const request = new sql.Request();
+
+    // 1. Ràng buộc tham số (Chống SQL Injection) chuẩn theo Schema mới
     request.input("tieuDeTruyen", sql.NVarChar, title);
-    request.input("tacGia", sql.NVarChar, author);
+    request.input("tacGiaId", sql.Int, author_id); // Dùng INT cho author_id
     request.input("moTa", sql.NVarChar, description);
     request.input("anhBia", sql.VarChar, cover_image);
+    request.input("trangThai", sql.TinyInt, novel_status || 1); // Nếu không có status, mặc định là 1 (Đang tiến hành)
+
+    // 2. Kiểm tra trùng tên truyện (Tối ưu: chỉ SELECT novel_id cho nhẹ)
     const checkDuplicateTitle = await request.query(
-      "SELECT * FROM novels WHERE title = @tieuDeTruyen",
+      "SELECT novel_id FROM novels WHERE title = @tieuDeTruyen",
     );
+
     if (checkDuplicateTitle.recordset.length > 0) {
       throw new Error("Tên bộ truyện này đã tồn tại trên hệ thống!");
     }
-    // Thêm vào SQL Server chống SQL Injection
 
-    await request.query(
-      " INSERT INTO novels (title,author,description,cover_image) VALUES (@tieuDeTruyen,@tacGia,@moTa,@anhBia)",
-    );
+    // 3. Thêm vào Database (Bổ sung author_id, novel_status và created_at)
+    await request.query(`
+      INSERT INTO novels (title, author_id, description, cover_image, novel_status, created_at) 
+      VALUES (@tieuDeTruyen, @tacGiaId, @moTa, @anhBia, @trangThai, GETDATE())
+    `);
+
     return true;
   }
   async deleteNovel(id) {

@@ -19,5 +19,39 @@ class AuthorController {
         .json({ message: "Lỗi máy chủ nội bộ", error: err.message });
     }
   }
+  async addAuthor(req, res) {
+    try {
+      const { authorName } = req.body;
+      if (!authorName || authorName.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "Tên tác giả không được để trống!",
+        });
+      }
+
+      const result = await authorService.addAuthor(authorName);
+      console.log(result);
+      if (!result) {
+        return res.status(400).json({
+          success: false,
+          message: "Thêm tác giả thất bại!",
+        });
+      }
+
+      // Trả về 201 cho hành động tạo mới thành công
+      return res.status(201).json({
+        success: true,
+        message: "Thêm tác giả thành công!",
+        result: result,
+      });
+    } catch (err) {
+      console.error("Lỗi Controller:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Lỗi hệ thống, không thể thêm tác giả!",
+        error: err.message,
+      });
+    }
+  }
 }
 export default new AuthorController();
