@@ -6,4 +6,5 @@ router.post("/novels", novelController.addNovel);
 router.delete("/novels/:id", novelController.deleteNovel);
 router.patch("/novels/:id", novelController.updateNovel);
 router.put("/novels/:id/categories", novelController.addCategories);
+router.get("/dashboard/stats", novelController.getNovelDashboardStats);
 export default router;

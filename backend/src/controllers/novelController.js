@@ -117,5 +117,27 @@ class NovelController {
       });
     }
   }
+  async getNovelDashboardStats(req, res) {
+    try {
+      // 1. Gọi service để lấy dữ liệu thống kê từ database
+      const stats = await novelService.getNovelDashboardStats();
+
+      // 2. Trả về response thành công kèm dữ liệu cho Frontend
+      return res.status(200).json({
+        success: true,
+        message: "Lấy thống kê dashboard thành công",
+        data: stats,
+      });
+    } catch (err) {
+      // 3. Xử lý khi có lỗi xảy ra ở tầng Database hoặc Service
+      console.error("Error in getNovelDashboardStats controller:", err);
+
+      return res.status(500).json({
+        success: false,
+        message: "Đã có lỗi xảy ra khi lấy thống kê dashboard",
+        error: err.message,
+      });
+    }
+  }
 }
 export default new NovelController();

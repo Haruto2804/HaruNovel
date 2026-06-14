@@ -5,6 +5,7 @@ import chapterRoutes from "./src/routes/chapterRoutes.js";
 import novelRoutes from "./src/routes/novelRoutes.js";
 import categoryRoutes from "./src/routes/categoryRoutes.js";
 import bookmarkRoutes from "./src/routes/bookmarkRoutes.js";
+import authorRoutes from "./src/routes/authorRoutes.js";
 const app = express();
 app.use(cors()); // Cho phép Frontend gọi tới
 app.use(express.json());
@@ -13,6 +14,8 @@ app.use("/api", novelRoutes);
 app.use("/api", chapterRoutes);
 app.use("/api", categoryRoutes);
 app.use("/api", bookmarkRoutes);
+app.use("/api", authorRoutes);
+
 app.listen(8080, () => {
   console.log(`Kết nối tại cổng ${8080}`);
 });

@@ -1,7 +1,12 @@
 import { sql } from "../config/db.js";
 class NovelService {
   async fetchAllNovels() {
-    const result = await sql.query("SELECT * FROM novels");
+    const query = `
+    SELECT *
+    FROM novels n JOIN novel_categories nc ON n.novel_id = nc.novel_id
+    JOIN categories c ON c.category_id = nc.category_id
+`;
+    const result = await sql.query(query);
     return result.recordset;
   }
   async addNovel(novelData) {
@@ -102,6 +107,21 @@ class NovelService {
       // Nếu có bất kỳ lỗi nào, hủy bỏ toàn bộ
       await trans.rollback();
       throw new Error(`Lỗi gán danh mục: ${err.message}`);
+    }
+  }
+  async getNovelDashboardStats() {
+    try {
+      const request = new sql.Request();
+      const result = await request.query(`
+         SELECT 
+          COUNT (novel_id) AS totalTitles,
+          COUNT(CASE WHEN novel_status = 1 THEN 1 ELSE NULL END) AS activeDrafts,
+          SUM(CASE WHEN novel_status = 1 THEN ISNULL(view_count, 0) ELSE 0 END) AS totalViews
+          FROM novels;
+       `);
+      return result.recordset[0];
+    } catch (err) {
+      throw new Error(`Lỗi khi lấy thống kê truyện: ${err.message}`);
     }
   }
 }

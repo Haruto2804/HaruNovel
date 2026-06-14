@@ -1,22 +1,20 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
+import StoryEditor from "../../components/ui/StoryEditor";
+import AuthorSelect from "../../components/ui/AuthorSelect";
+import authorService from "../../services/authorService.js";
 const CreateNovel = () => {
   // --- STATES CHO FORM DỮ LIỆU ---
   const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("Select Author Account");
+  const [authors, setAuthors] = useState(null);
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState("Fantasy");
   const [status, setStatus] = useState("Draft");
-
+  //CREATE NOVEL DATA SENDER
+  const [storyContent, setStoryContent] = useState(null);
   // --- STATES CHO TAGS ---
   const [tags, setTags] = useState(["High Fantasy", "Magic System"]);
   const [tagInput, setTagInput] = useState("");
-
-  // --- STATES CHO NÚT GẠT (TOGGLES) ---
-  const [allowComments, setAllowComments] = useState(true);
-  const [ageRestricted, setAgeRestricted] = useState(false);
-  const [premiumAccess, setPremiumAccess] = useState(false);
-
+  console.log(storyContent);
   // --- STATE CHO TOAST THÔNG BÁO ---
   const [showToast, setShowToast] = useState(false);
 
@@ -57,7 +55,6 @@ const CreateNovel = () => {
       setShowToast(false);
     }, 3000);
   };
-
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto font-['Inter'] relative min-h-full">
       {/* HEADER SECTION */}
@@ -115,65 +112,10 @@ const CreateNovel = () => {
                   <label className="block text-[13px] font-bold text-slate-500 mb-2 group-focus-within:text-teal-700 transition-colors uppercase tracking-wide">
                     Author Identity
                   </label>
-                  <div className="relative">
-                    <select
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                      className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[14px] font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
-                    >
-                      <option disabled>Select Author Account</option>
-                      <option>Elara Vance (Admin)</option>
-                      <option>Julian Thorne</option>
-                      <option>+ Add New Contributor</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-4 top-3.5 pointer-events-none text-slate-400">
-                      expand_more
-                    </span>
-                  </div>
+                  <AuthorSelect onChange={authors} />
                 </div>
 
-                <div className="group">
-                  <label className="block text-[13px] font-bold text-slate-500 mb-2 group-focus-within:text-teal-700 transition-colors uppercase tracking-wide">
-                    Synopsis & Description
-                  </label>
-                  <div className="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500/20 focus-within:border-teal-500 focus-within:bg-white transition-all">
-                    {/* Mock Rich Text Toolbar */}
-                    <div className="flex items-center gap-4 px-4 py-2 border-b border-slate-200 bg-slate-100/50">
-                      <button
-                        type="button"
-                        className="material-symbols-outlined text-slate-500 hover:text-teal-700 text-[20px]"
-                      >
-                        format_bold
-                      </button>
-                      <button
-                        type="button"
-                        className="material-symbols-outlined text-slate-500 hover:text-teal-700 text-[20px]"
-                      >
-                        format_italic
-                      </button>
-                      <button
-                        type="button"
-                        className="material-symbols-outlined text-slate-500 hover:text-teal-700 text-[20px]"
-                      >
-                        format_list_bulleted
-                      </button>
-                      <div className="w-[1px] h-4 bg-slate-300"></div>
-                      <button
-                        type="button"
-                        className="material-symbols-outlined text-slate-500 hover:text-teal-700 text-[20px]"
-                      >
-                        link
-                      </button>
-                    </div>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className="w-full bg-transparent border-none focus:ring-0 px-4 py-3 text-[14px] text-slate-800 leading-relaxed resize-none custom-scrollbar outline-none placeholder:text-slate-400"
-                      placeholder="Enter the story's soul here..."
-                      rows="8"
-                    ></textarea>
-                  </div>
-                </div>
+                <StoryEditor setStoryContent={setStoryContent} />
               </div>
             </section>
 
@@ -288,83 +230,6 @@ const CreateNovel = () => {
                 <p className="text-[11px] font-semibold text-slate-400 mt-2">
                   Recommended: 1000x1500px JPG/PNG
                 </p>
-              </div>
-            </section>
-
-            {/* Section 4: Visibility & Governance */}
-            <section className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700">
-                  <span className="material-symbols-outlined">tune</span>
-                </div>
-                <h3 className="font-['Playfair_Display'] text-[22px] font-bold text-slate-900">
-                  Governance
-                </h3>
-              </div>
-
-              <div className="space-y-6">
-                {/* Toggle: Allow Comments */}
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col pr-4">
-                    <span className="font-bold text-[14px] text-slate-800">
-                      Allow Comments
-                    </span>
-                    <span className="text-[12px] font-medium text-slate-500">
-                      Enable reader discussion
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAllowComments(!allowComments)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${allowComments ? "bg-teal-600" : "bg-slate-300"}`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-300 ${allowComments ? "translate-x-6" : "translate-x-1"}`}
-                    />
-                  </button>
-                </div>
-
-                {/* Toggle: Age Restricted */}
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col pr-4">
-                    <span className="font-bold text-[14px] text-slate-800">
-                      Age Restricted (18+)
-                    </span>
-                    <span className="text-[12px] font-medium text-slate-500">
-                      Content for mature audiences
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAgeRestricted(!ageRestricted)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${ageRestricted ? "bg-red-500" : "bg-slate-300"}`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-300 ${ageRestricted ? "translate-x-6" : "translate-x-1"}`}
-                    />
-                  </button>
-                </div>
-
-                {/* Toggle: Premium Access */}
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col pr-4">
-                    <span className="font-bold text-[14px] text-slate-800">
-                      Premium Access
-                    </span>
-                    <span className="text-[12px] font-medium text-slate-500">
-                      Unlock via Haru Coins
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setPremiumAccess(!premiumAccess)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${premiumAccess ? "bg-amber-500" : "bg-slate-300"}`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-300 ${premiumAccess ? "translate-x-6" : "translate-x-1"}`}
-                    />
-                  </button>
-                </div>
               </div>
             </section>
           </div>

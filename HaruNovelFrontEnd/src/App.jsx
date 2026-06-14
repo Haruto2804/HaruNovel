@@ -23,6 +23,7 @@ import EditCategory from "./pages/admin/EditCategory";
 import EditUser from "./pages/admin/EditUser";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import { NovelProvider } from "./contexts/NovelContext";
 
 // Mảng cấu hình đầy đủ các màu sắc hệ thống
 const themes = [
@@ -175,8 +176,17 @@ const App = () => {
           ========================================= */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
-        <Route path="novels" element={<NovelManage />} />
-        <Route path="novels/create" element={<CreateNovel />} />{" "}
+        <Route
+          element={
+            <NovelProvider>
+              <Outlet />
+            </NovelProvider>
+          }
+        >
+          <Route path="novels" element={<NovelManage />} />
+          <Route path="novels/create" element={<CreateNovel />} />
+        </Route>
+
         <Route path="chapters" element={<ChapterManage />} />
         <Route path="chapters/edit" element={<EditChapter />} />
         <Route path="categories" element={<CategoryManage />} />

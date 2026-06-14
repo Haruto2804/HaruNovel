@@ -1,96 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNovel } from "../../contexts/NovelContext";
 
 // --- MOCK DATA ---
-const statsData = [
-  {
-    id: 1,
-    label: "Total Titles",
-    value: "1,284",
-    icon: "book",
-    color: "text-teal-700 bg-teal-100",
-  },
-  {
-    id: 2,
-    label: "Active Drafts",
-    value: "142",
-    icon: "edit_note",
-    color: "text-blue-700 bg-blue-100",
-  },
-  {
-    id: 3,
-    label: "Total Views",
-    value: "2.4M",
-    icon: "visibility",
-    color: "text-indigo-700 bg-indigo-100",
-  },
-  {
-    id: 4,
-    label: "Growth",
-    value: "+12.5%",
-    icon: "trending_up",
-    color: "text-emerald-700 bg-emerald-100",
-  },
-];
 
-const mockNovels = [
-  {
-    id: "LN-9021",
-    title: "The Midnight Library",
-    author: "Eleanor Vance",
-    category: "Fantasy",
-    status: "Published",
-    views: "242,109",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBHUzQmFfWncRYTwDnOuF5m66Hps9ERr1LsN-oSbKlJx2SIut_bZ4OL75rDc1ZYHPBxWjN4-hbtiIkPs4VrzQHnEbK9_jdB6uqXkoroysecJSUAnhJOUVQlfgsQpatXlyDoO_Z-c1Fh5X7SJQ2niVecgg36kdU3VNy1MPacwTyxpPstHxXZs68TZ6Qy6l8Qt5SHZiaGgFFe8XtvFMc-mZO2dbWqr8RrtQd84jpjLTreq-uuWhcPSUjSO1AWMomIFsyAZfe4uvL8dIw",
+const STATUS_CONFIG = {
+  1: {
+    label: "Published",
+    dotColor: "bg-teal-500",
+    textColor: "text-teal-700",
   },
-  {
-    id: "LN-8452",
-    title: "Echoes of Tomorrow",
-    author: "Julian Thorne",
-    category: "Sci-Fi",
-    status: "Draft",
-    views: "1,024",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAfzMisK82UyHXSIQkTrJrFDIoTi2nZT0TZgqjYPWYW-SlEx9zT5XtKX4mVQnXqaCE-Cw2ZLKIVUFGPZsn8scca2ZhGyV8KTWcRdLGGmv1jwckvMW_nlhEnwXwk4c_mRFz9C-RVThUGSjitcbVtPTcGdthy3_mMsUsW4OoOszIleeoWnnzbkfQ6Mns130PtG4VC_9VJhPJtjgx_5w5Dn_Uwd4OqLCiGbJFxaRTDSSk2wvSFvAAGYb9kBXst8ZneonWM2AnSOSijK70",
+  2: { label: "Draft", dotColor: "bg-slate-400", textColor: "text-slate-500" },
+  3: {
+    label: "Scheduled",
+    dotColor: "bg-amber-500",
+    textColor: "text-amber-700",
   },
-  {
-    id: "LN-7721",
-    title: "Whispers in the Rain",
-    author: "Sarah J. Miller",
-    category: "Romance",
-    status: "Published",
-    views: "88,432",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCzwFobxTZ44ynjYIql3qmoKLWriretaLWA4DfdQ-vY4IaE2i8HEoc_eEAMN7E7dNx9Oh8AfqdGsfhAKb7Bs8s2jaMOR_IFeaAf8hFE2Fybwn5OVugA0UQ9nlZuQAue7Dc1DoV2bMxWXtcUOlzWUIV3nc94N_wSJYgz-lM8_NNP6eivnhdLsdYpS1IYhPCd1WUiZytIGK6wlC-KIRWx3GvOm7ClldgX55FyAJnPbK6gd7Dlec3cWQ_SCs-yDBFtJ0HBb35Ja3JPu2k",
-  },
-  {
-    id: "LN-6211",
-    title: "The Alchemist's Shadow",
-    author: "Markus Wright",
-    category: "Thriller",
-    status: "Published",
-    views: "15,772",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDNTwk15JCfynwK4Cm4oa_cLrRXFfoT8AN7oa64somcYKBCoxVy47O4WeIcPH72SfPyvSlRF-MC553jSleaHKSRNcOkdxiZ4Js_5_zQuAv4DxFBruK30WqnHFUFFb63nZS6zKj_OlWAOCOCCuvxpu01rLAcXvHV2T-D4ikwanUTeOHpRWKNT_lGFkwBb0ZcpRwPiiJi1gjgBlzVgIrNzBBLgBOKBiK43uybtAB8mV3o3kp0HH_4uazjEtOzo_CMHrZDKTxmcie2BfQ",
-  },
-];
-
+};
 const NovelManage = () => {
+  const { novels, statsData, fetchNovels, fetchNovelStats } = useNovel();
   // --- STATES CHO TÌM KIẾM VÀ LỌC ---
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("Status: All");
 
   // --- LOGIC LỌC DỮ LIỆU ---
-  const filteredNovels = mockNovels.filter((novel) => {
+  const filteredNovels = novels.filter((novel) => {
     const matchesSearch =
       novel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       novel.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      novel.id.toLowerCase().includes(searchTerm.toLowerCase());
+      novel.novel_id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       categoryFilter === "All Categories" || novel.category === categoryFilter;
     const matchesStatus =
-      statusFilter === "Status: All" || novel.status === statusFilter;
+      statusFilter === "Status: All" || novel.novel_status === statusFilter;
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
+  useEffect(() => {
+    fetchNovels();
+    fetchNovelStats();
+  }, []);
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto font-['Inter']">
       {/* PAGE HEADER */}
@@ -121,27 +70,60 @@ const NovelManage = () => {
       </div>
 
       {/* QUICK STATS (BENTO STYLE) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        {statsData.map((stat) => (
-          <div
-            key={stat.id}
-            className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <p className="text-slate-400 font-bold text-[11px] tracking-wider uppercase">
-              {stat.label}
-            </p>
-            <div className="flex items-center justify-between mt-2">
-              <span className="font-['Playfair_Display'] text-[28px] font-bold text-slate-900">
-                {stat.value}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {/* Card 1: Theme Xanh Dương (Blue) */}
+        <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+          <p className="text-blue-600/70 font-bold text-[11px] tracking-wider uppercase">
+            {/* Ví dụ: Total Titles */}
+            Total titles
+          </p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="font-['Playfair_Display'] text-[28px] font-bold text-blue-950">
+              {statsData.totalTitles}
+            </span>
+            <div className="bg-blue-100 p-2.5 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px] text-blue-600">
+                description
               </span>
-              <div className={`p-2.5 rounded-xl ${stat.color}`}>
-                <span className="material-symbols-outlined text-[20px]">
-                  {stat.icon}
-                </span>
-              </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Card 2: Theme Cam (Amber) */}
+        <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+          <p className="text-amber-600/80 font-bold text-[11px] tracking-wider uppercase">
+            Active Drafts
+          </p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="font-['Playfair_Display'] text-[28px] font-bold text-amber-950">
+              {statsData.activeDrafts}
+            </span>
+            <div className="bg-amber-100 p-2.5 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px] text-amber-600">
+                edit_document
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Theme Xanh Ngọc (Emerald) */}
+        <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+          <p className="text-emerald-600/80 font-bold text-[11px] tracking-wider uppercase">
+            {/* Ví dụ: Total Views */}
+            Total Views
+          </p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="font-['Playfair_Display'] text-[28px] font-bold text-emerald-950">
+              {statsData.totalViews}{" "}
+              {/* Bạn thay đổi data tương ứng ở đây nhé */}
+            </span>
+            <div className="bg-emerald-100 p-2.5 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px] text-emerald-600">
+                visibility
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* MAIN DATA TABLE CONTAINER */}
@@ -217,14 +199,14 @@ const NovelManage = () => {
               {filteredNovels.length > 0 ? (
                 filteredNovels.map((novel) => (
                   <tr
-                    key={novel.id}
+                    key={novel.novel_id}
                     className="hover:bg-slate-50/80 transition-colors group"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-16 rounded-md shadow-sm overflow-hidden flex-shrink-0 bg-slate-200">
+                        <div className="w-12 h-16 rounded-md shadow-sm overflow-hidden shrink-0 bg-slate-200">
                           <img
-                            src={novel.img}
+                            src={novel.cover_image}
                             alt={novel.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -234,7 +216,7 @@ const NovelManage = () => {
                             {novel.title}
                           </h4>
                           <p className="text-slate-400 text-[11px] font-bold tracking-wider mt-1">
-                            ID: {novel.id}
+                            ID: {novel.novel_id}
                           </p>
                         </div>
                       </div>
@@ -244,34 +226,47 @@ const NovelManage = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
-                        {novel.category}
+                        {novel.category_name}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-2 h-2 rounded-full ${novel.status === "Published" ? "bg-teal-500" : "bg-slate-400"}`}
-                        ></span>
-                        <span
-                          className={`font-bold text-[12px] ${novel.status === "Published" ? "text-teal-700" : "text-slate-500"}`}
-                        >
-                          {novel.status}
-                        </span>
-                      </div>
+                      {/* Lấy cấu hình dựa trên status (1, 2, hoặc 3) */}
+                      {(() => {
+                        const config =
+                          STATUS_CONFIG[novel.novel_status] || STATUS_CONFIG[2]; // Mặc định là Draft nếu không khớp
+
+                        return (
+                          <div className="flex items-center gap-2">
+                            {/* Chấm tròn trạng thái */}
+                            <span
+                              className={`w-2 h-2 rounded-full ${config.dotColor}`}
+                            ></span>
+
+                            {/* Text trạng thái */}
+                            <span
+                              className={`font-bold text-[12px] ${config.textColor}`}
+                            >
+                              {config.label}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 font-medium text-[14px] text-slate-600">
-                      {novel.views}
+                      {novel.view_count}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1.5">
-                        <button
-                          className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all"
-                          title="Edit"
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            edit
-                          </span>
-                        </button>
+                        <a href="/admin/novels/edit">
+                          <button
+                            className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all"
+                            title="Edit"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">
+                              edit
+                            </span>
+                          </button>
+                        </a>{" "}
                         <button
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                           title="View Details"
